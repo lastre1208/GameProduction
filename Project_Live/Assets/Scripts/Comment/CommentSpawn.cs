@@ -103,7 +103,7 @@ public class CommentSpawn : MonoBehaviour
 
         Vector2 CanvasMinY = new Vector2 (canvasRect.rect.width/2,-canvasRect.rect.height/2);
 
-        Vector2 SpanwPos = new Vector2 (CanvasMinY.x,CanvasMinY.y+(raneHeight*raneNum));
+        Vector2 SpanwPos = new Vector2 (CanvasMinY.x,CanvasMinY.y+(raneHeight*raneNum)+rectTransform.sizeDelta.y/2);
 
 
         return SpanwPos;

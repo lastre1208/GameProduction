@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class CheeringComment : MonoBehaviour
+public class CheeringComment  :AnimationCheeringComment
 {
     [Header("加えるHP")]
     [SerializeField] float addHPnum;
@@ -16,11 +18,18 @@ public class CheeringComment : MonoBehaviour
     [SerializeField] float buffTime;
     [Header("応援コメントの内容")]
     public  List<string> cheeringCommentContent = new List<string>();
+    [Header("決定時のエフェクト")]
+    [SerializeField] ParticleSystem particleEffect;
 
     PlayerStatus playerStatus;
     PlayerBuffManager playerBuffManager;
     CommentSpawn commentSpawn;
+    CommentMove commentMove;
+    
     Button thisComment;
+
+    GameObject PowerBuffImage;
+    GameObject AgilityBuffImage;
 
     private void Start()
     {
@@ -28,6 +37,13 @@ public class CheeringComment : MonoBehaviour
         playerStatus=GameObject.FindGameObjectWithTag("PlayerStatus").GetComponent<PlayerStatus>();
         commentSpawn = GameObject.FindGameObjectWithTag("CommentSpawn").GetComponent<CommentSpawn>();
         thisComment=this.gameObject.GetComponent<Button>();
+        commentMove=this.gameObject.GetComponent<CommentMove>();
+
+        animator = this.gameObject.GetComponent<Animator>();
+
+        rectTransform=this.GetComponent<RectTransform>();
+        PowerBuffImage = GameObject.FindGameObjectWithTag("PowerBuffImage");
+        AgilityBuffImage = GameObject.FindGameObjectWithTag("AgilityBuffImage");
 
         commentSpawn.cheeringCommentIsExist=true;
 
@@ -70,7 +86,6 @@ public class CheeringComment : MonoBehaviour
         }
     }
 
-
     public void AddHP()
     {
         playerBuffManager.AddHP(addHPnum);
@@ -79,20 +94,35 @@ public class CheeringComment : MonoBehaviour
 
     public void BuffAtack()
     {
-        playerBuffManager.BuffAttack(attackMagnification, buffTime);
-        DestroyComment();
+        particleEffect.Play();
+        EventSystem.current.SetSelectedGameObject(null);
+        commentMove.enabled = false;
+
+        // コルーチン完了後にBuffAttackを実行するコールバックを渡す
+        OnButtonClicked(PowerBuffImage, () =>
+        {
+            // アニメーション完了後に実行される
+            playerBuffManager.BuffAttack(attackMagnification, buffTime);
+            DestroyComment();
+        });
     }
 
     public void BuffAgility()
     {
-        playerBuffManager.BuffMoveSpeed(agilityMagnification, buffTime);
-        DestroyComment();
+        particleEffect.Play();
+        EventSystem.current.SetSelectedGameObject(null);
+        commentMove.enabled = false;
+
+        OnButtonClicked(AgilityBuffImage, () =>
+        {
+            playerBuffManager.BuffMoveSpeed(agilityMagnification, buffTime);
+            DestroyComment();
+        });
     }
 
     void DestroyComment()
     {
         Destroy(this.gameObject);
-        commentSpawn.cheeringCommentIsExist = false;
     }
 
     private void OnDestroy()
